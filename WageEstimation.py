@@ -1,14 +1,33 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+import seaborn as sns
 
-# Data import
+# import dataset
 data = pd.read_csv("adult_data.csv")
 data = pd.DataFrame(data)
 
-# Data separation
-y = data.salary
-X = data.drop(columns=['salary'])
+# encode independent variable
+data['salary'].replace(['<=50K', '>50K'], [0,1], inplace=True)
 
-# CV Splitting
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+# drop unnecessary columns
+data = data.drop(columns=['education', 'fnlwgt', 'relationship', 'native-country', 'capital-loss'])
+
+# Encode remaining categorical variables
+encoding = dict()
+for column in data.columns:
+    current_encoding = dict()
+    if data.dtypes[column]==np.object:
+        current_encoding = dict(enumerate(data[column].astype('category').cat.categories))
+        data[column] = data[column].astype('category').cat.codes
+        current_encoding = dict([(x, y) for y, x in current_encoding.items()])
+        encoding[column] = current_encoding
+
+# Create DV and IV dataframes
+y = pd.DataFrame(data.salary)
+X = pd.DataFrame(data.drop(columns=['salary']))
+
+print(y)
+print(X)
